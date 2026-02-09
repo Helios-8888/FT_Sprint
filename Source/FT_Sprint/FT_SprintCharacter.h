@@ -36,7 +36,7 @@ class AFT_SprintCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
 
-	/** Move Input Action */
+	/** Move Input Action */	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
 
@@ -50,10 +50,14 @@ class AFT_SprintCharacter : public ACharacter
 
 public:
 	AFT_SprintCharacter();
-	
+
 
 protected:
 
+	bool Sprinting;
+	float MaxStamina;
+	float RemainingStamina;
+	float DecayRate;
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -67,7 +71,7 @@ protected:
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+	virtual void Tick(float DeltaSeconds) override;
 	// To add mapping context
 	virtual void BeginPlay();
 

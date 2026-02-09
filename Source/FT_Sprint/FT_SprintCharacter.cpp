@@ -21,6 +21,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 // 3. Disable or restrict movement if stamina is fully drained
 // 4. Recover stamina when the character is not sprinting
 
+
 AFT_SprintCharacter::AFT_SprintCharacter()
 {
 	// Set size for collision capsule
@@ -63,6 +64,26 @@ void AFT_SprintCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+	AFT_SprintCharacter::MaxStamina = 5; //Is this the correct way?
+	AFT_SprintCharacter::RemainingStamina = MaxStamina;
+	AFT_SprintCharacter::Sprinting = false;
+	AFT_SprintCharacter::DecayRate = 1;
+}
+
+void AFT_SprintCharacter::Tick(float DeltaSeconds) {
+	if (AFT_SprintCharacter::Sprinting == true) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Stamina remaining: %f"), RemainingStamina);
+		if (AFT_SprintCharacter::RemainingStamina > 0) 
+		{
+			AFT_SprintCharacter::RemainingStamina -= (DeltaSeconds * AFT_SprintCharacter::DecayRate);
+		}
+		else 
+		{
+			AFT_SprintCharacter::RemainingStamina = 0;
+			AFT_SprintCharacter::SprintStop(false);
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,6 +122,7 @@ void AFT_SprintCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
+
 
 void AFT_SprintCharacter::Move(const FInputActionValue& Value)
 {
@@ -141,15 +163,30 @@ void AFT_SprintCharacter::Look(const FInputActionValue& Value)
 /** Connah methods implementation */
 void AFT_SprintCharacter::SprintStart(const FInputActionValue& Value)
 {
-	// we could set speeds, but i like scalers 
-	GetCharacterMovement()->MaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed * 2;
-	// make it so they have a speed up route
-	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MinAnalogWalkSpeed * 3;
+	if (AFT_SprintCharacter::RemainingStamina > 0) {
+		AFT_SprintCharacter::Sprinting = true;
+		// Temporary  ,   Warning?  , Type of log
+		UE_LOG(LogTemp, Warning, TEXT("Started Sprinting"));
+		// we could set speeds, but i like scalers 
+		GetCharacterMovement()->MaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed * 2;
+		// make it so they have a speed up route
+		GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MinAnalogWalkSpeed * 3;
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Not Enough stamina"));
+	}
 }
 
 void AFT_SprintCharacter::SprintStop(const FInputActionValue& Value)
 {
-	// Reset the speeds
-	GetCharacterMovement()->MaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed / 2;
-	GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MinAnalogWalkSpeed / 3;
+	if (AFT_SprintCharacter::Sprinting == true)
+	{
+		AFT_SprintCharacter::Sprinting = false;
+
+		UE_LOG(LogTemp, Warning, TEXT("Stopped Sprinting"));
+		// Reset the speeds
+		GetCharacterMovement()->MaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed / 2;
+		GetCharacterMovement()->MinAnalogWalkSpeed = GetCharacterMovement()->MinAnalogWalkSpeed / 3;
+	}
+	
 }
